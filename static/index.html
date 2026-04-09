@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TribunaFinder — ¿Dónde estás?</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #00ff87;
+    --dark:  #080808;
+    --panel: #101010;
+    --card:  #161616;
+    --border:#232323;
+    --text:  #ebebeb;
+    --muted: #555;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 40px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: rgba(8,8,8,0.94);
+    backdrop-filter: blur(14px);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 4px;
+  }
+  .logo em { color: var(--green); font-style: normal; }
+
+  .badge {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .badge .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background 0.4s, box-shadow 0.4s;
+  }
+  .badge .dot.on {
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: blink 2.5s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 60px 20px 40px;
+  }
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(42px, 8vw, 90px);
+    letter-spacing: 6px;
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+  .hero h1 span { color: var(--green); }
+  .hero p {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 460px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* STATUS BAR */
+  #statusBar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 12px 40px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .stat { display: flex; align-items: center; gap: 6px; }
+  .stat strong { color: var(--text); font-size: 15px; }
+
+  /* MAIN */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* UPLOAD */
+  .upload-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 12px;
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .upload-zone:hover, .upload-zone.over {
+    border-color: var(--green);
+    background: rgba(0,255,135,0.03);
+  }
+  .upload-zone input {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer;
+    width: 100%; height: 100%;
+  }
+  .upload-icon { font-size: 44px; display: block; margin-bottom: 14px; }
+  .upload-zone h3 { font-size: 16px; font-weight: 500; margin-bottom: 6px; }
+  .upload-zone p  { font-size: 13px; color: var(--muted); }
+
+  /* PREVIEW */
+  #previewWrap {
+    display: none;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    position: relative;
+    max-height: 320px;
+  }
+  #selfiePreview {
+    width: 100%; display: block;
+    max-height: 320px; object-fit: cover;
+  }
+  .preview-actions {
+    display: flex; gap: 10px;
+    margin-top: 12px;
+  }
+
+  /* BUTTONS */
+  .btn {
+    padding: 14px 24px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: var(--green);
+    color: #000;
+    flex: 1;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #00e87a;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0,255,135,0.2);
+  }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .btn-ghost:hover { border-color: var(--text); color: var(--text); }
+
+  /* RESULT */
+  #resultSection { display: none; }
+
+  .result-card {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    animation: fadeUp 0.4s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(12px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .result-banner {
+    padding: 18px 24px;
+    display: flex; align-items: center; gap: 12px;
+    font-weight: 500; font-size: 16px;
+  }
+  .result-banner.found    { background: rgba(0,255,135,0.1); color: var(--green); border-bottom: 1px solid rgba(0,255,135,0.15); }
+  .result-banner.notfound { background: rgba(255,80,80,0.08); color: #ff6060;     border-bottom: 1px solid rgba(255,80,80,0.12); }
+
+  .result-icon { font-size: 24px; }
+
+  .result-meta {
+    padding: 18px 24px;
+    display: flex; gap: 24px; flex-wrap: wrap;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+  .meta-item { font-size: 13px; color: var(--muted); }
+  .meta-item strong { display: block; font-size: 20px; color: var(--text); font-weight: 400; }
+
+  .confidence-bar {
+    margin-top: 6px;
+    background: var(--border); border-radius: 4px; height: 4px; width: 120px;
+  }
+  .confidence-fill { height: 100%; border-radius: 4px; width: 0; transition: width 0.9s ease; }
+
+  #resultImgWrap { display: none; }
+  #resultImg { width: 100%; display: block; max-height: 500px; object-fit: contain; background: #000; }
+
+  /* TIPS */
+  .tips { display: flex; flex-direction: column; gap: 10px; }
+  .tip {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .tip-icon { font-size: 18px; flex-shrink: 0; }
+  .tip strong { color: var(--text); display: block; margin-bottom: 2px; }
+
+  /* LOADER */
+  #loaderOverlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(6px);
+    z-index: 300;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 18px;
+  }
+  #loaderOverlay.show { display: flex; }
+  .spinner {
+    width: 50px; height: 50px;
+    border: 3px solid var(--border);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px; letter-spacing: 3px;
+    color: var(--green);
+  }
+
+  /* RESP */
+  @media (max-width: 600px) {
+    header { padding: 16px 20px; }
+    .hero  { padding: 40px 20px 28px; }
+    main   { padding: 32px 16px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loaderOverlay">
+  <div class="spinner"></div>
+  <div class="loader-label" id="loaderMsg">Analizando…</div>
+</div>
+
+<header>
+  <div class="logo">TRIBUNA<em>FINDER</em></div>
+  <div class="badge">
+    <div class="dot" id="headerDot"></div>
+    <span id="headerStatus">Conectando…</span>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>¿DÓNDE<br><span>ESTÁS</span>?</h1>
+  <p>Subí una foto de tu cara y te encontramos en el público.</p>
+</div>
+
+<div id="statusBar">
+  <div class="stat">📸 <strong id="statFaces">—</strong> caras en catálogo</div>
+  <div class="stat">🖼️ <strong id="statPhotos">—</strong> fotos</div>
+  <div class="stat">🧠 Modelo: <strong>ArcFace</strong></div>
+</div>
+
+<main>
+
+  <!-- Upload -->
+  <div class="card">
+    <div class="card-title">Tu foto</div>
+
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" accept="image/*" capture="user">
+      <span class="upload-icon">📷</span>
+      <h3>Subí tu selfie</h3>
+      <p>Foto clara, de frente, buena luz<br>JPG o PNG</p>
+    </div>
+
+    <div id="previewWrap">
+      <img id="selfiePreview" alt="Tu foto"/>
+      <div class="preview-actions">
+        <button class="btn btn-primary" id="btnFind" disabled>
+          🔍 Buscarme en la tribuna
+        </button>
+        <button class="btn btn-ghost" id="btnChange">Cambiar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resultado -->
+  <div id="resultSection">
+    <div class="card-title" style="margin-bottom:16px">Resultado</div>
+
+    <div class="result-card">
+      <div class="result-banner" id="resultBanner">
+        <span class="result-icon" id="resultIcon"></span>
+        <span id="resultTitle"></span>
+      </div>
+      <div class="result-meta" id="resultMeta" style="display:none">
+        <div class="meta-item">
+          Confianza
+          <strong id="metaConf">—</strong>
+          <div class="confidence-bar"><div class="confidence-fill" id="confFill"></div></div>
+        </div>
+        <div class="meta-item">
+          Foto<strong id="metaPhoto">—</strong>
+        </div>
+      </div>
+      <div id="resultImgWrap">
+        <img id="resultImg" alt="Resultado"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tips -->
+  <div class="card">
+    <div class="card-title">Tips para mejores resultados</div>
+    <div class="tips">
+      <div class="tip">
+        <span class="tip-icon">☀️</span>
+        <div><strong>Buena iluminación</strong>Usá luz natural o frontal, sin sombras fuertes sobre tu cara.</div>
+      </div>
+      <div class="tip">
+        <span class="tip-icon">👤</span>
+        <div><strong>De frente y sin obstrucciones</strong>Sin anteojos de sol, gorras bajas o tapabocas.</div>
+      </div>
+      <div class="tip">
+        <span class="tip-icon">📐</span>
+        <div><strong>Solo tu cara</strong>Que tu cara ocupe la mayor parte de la foto, sin muchas personas alrededor.</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const API = '';  // vacío = mismo origen
+
+// DOM
+const uploadZone   = document.getElementById('uploadZone');
+const fileInput    = document.getElementById('fileInput');
+const previewWrap  = document.getElementById('previewWrap');
+const selfiePreview= document.getElementById('selfiePreview');
+const btnFind      = document.getElementById('btnFind');
+const btnChange    = document.getElementById('btnChange');
+const resultSection= document.getElementById('resultSection');
+const resultBanner = document.getElementById('resultBanner');
+const resultIcon   = document.getElementById('resultIcon');
+const resultTitle  = document.getElementById('resultTitle');
+const resultMeta   = document.getElementById('resultMeta');
+const metaConf     = document.getElementById('metaConf');
+const metaPhoto    = document.getElementById('metaPhoto');
+const resultImgWrap= document.getElementById('resultImgWrap');
+const resultImg    = document.getElementById('resultImg');
+const loaderOverlay= document.getElementById('loaderOverlay');
+const loaderMsg    = document.getElementById('loaderMsg');
+const headerDot    = document.getElementById('headerDot');
+const headerStatus = document.getElementById('headerStatus');
+
+let currentFile = null;
+
+// ── Status ──────────────────────────────────────────────────────────────────
+async function checkStatus() {
+  try {
+    const r = await fetch(API + '/status');
+    const d = await r.json();
+    document.getElementById('statFaces').textContent  = d.faces_in_catalog;
+    document.getElementById('statPhotos').textContent = d.photos.length;
+    headerDot.classList.toggle('on', d.ready);
+    headerStatus.textContent = d.ready ? `${d.faces_in_catalog} caras listas` : 'Sin catálogo';
+    if (currentFile) btnFind.disabled = !d.ready;
+  } catch {
+    headerStatus.textContent = 'Sin conexión';
+  }
+}
+
+// ── Upload ───────────────────────────────────────────────────────────────────
+function loadFile(file) {
+  currentFile = file;
+  const url = URL.createObjectURL(file);
+  selfiePreview.src = url;
+  selfiePreview.onload = () => {
+    uploadZone.style.display = 'none';
+    previewWrap.style.display = 'block';
+    btnFind.disabled = false;
+    resultSection.style.display = 'none';
+  };
+}
+
+fileInput.addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+uploadZone.addEventListener('dragover',  e => { e.preventDefault(); uploadZone.classList.add('over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('over');
+  if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+});
+
+btnChange.addEventListener('click', () => {
+  uploadZone.style.display = 'block';
+  previewWrap.style.display = 'none';
+  resultSection.style.display = 'none';
+  currentFile = null;
+  fileInput.value = '';
+});
+
+// ── Find ────────────────────────────────────────────────────────────────────
+btnFind.addEventListener('click', async () => {
+  if (!currentFile) return;
+
+  loaderMsg.textContent = 'Buscando tu cara…';
+  loaderOverlay.classList.add('show');
+  btnFind.disabled = true;
+
+  try {
+    const form = new FormData();
+    form.append('file', currentFile);
+
+    const r = await fetch(API + '/find', { method: 'POST', body: form });
+    const d = await r.json();
+
+    resultSection.style.display = 'block';
+    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    if (d.found) {
+      resultBanner.className = 'result-banner found';
+      resultIcon.textContent = '✅';
+      resultTitle.textContent = '¡Te encontramos en la tribuna!';
+      resultMeta.style.display = 'flex';
+      metaConf.textContent  = d.confidence + '%';
+      metaPhoto.textContent = d.photo;
+
+      const fill = document.getElementById('confFill');
+      fill.style.background = d.confidence > 70 ? 'var(--green)' : '#ffb300';
+      setTimeout(() => fill.style.width = d.confidence + '%', 100);
+
+      if (d.image_b64) {
+        resultImgWrap.style.display = 'block';
+        resultImg.src = 'data:image/jpeg;base64,' + d.image_b64;
+      }
+    } else {
+      resultBanner.className = 'result-banner notfound';
+      resultIcon.textContent = '❌';
+      resultTitle.textContent = `No encontramos tu cara (confianza: ${d.confidence}%). Probá con otra foto más clara.`;
+      resultMeta.style.display = 'none';
+      resultImgWrap.style.display = 'none';
+    }
+  } catch (e) {
+    resultSection.style.display = 'block';
+    resultBanner.className = 'result-banner notfound';
+    resultIcon.textContent = '⚠️';
+    resultTitle.textContent = 'Error al procesar: ' + e.message;
+  } finally {
+    loaderOverlay.classList.remove('show');
+    btnFind.disabled = false;
+  }
+});
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+checkStatus();
+setInterval(checkStatus, 30000);
+</script>
+</body>
+</html>
