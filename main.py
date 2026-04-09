@@ -53,10 +53,10 @@ def box_to_dict(region: dict) -> dict:
 def build_catalog():
     """Escanea todas las fotos del catálogo y guarda embeddings."""
     global catalog_data
-    CACHE_FILE.parent.mkdir(exist_ok=True)
+    CACHE_FILE.parent.mkdir(exist_ok=True, parents=True)
 
     extensions = {".jpg", ".jpeg", ".png", ".webp"}
-    photos = [p for p in sorted(CATALOG_DIR.iterdir()) if p.suffix.lower() in extensions]
+    photos = [p for p in sorted(CATALOG_DIR.iterdir()) if p.suffix.lower() in extensions and p.is_file()]
 
     if not photos:
         log.warning("No se encontraron fotos en /catalog")
@@ -134,7 +134,8 @@ def image_to_base64(photo_name: str, box: dict) -> str:
 
 @app.on_event("startup")
 async def startup():
-    CATALOG_DIR.mkdir(exist_ok=True)
+    if not CATALOG_DIR.exists():
+        CATALOG_DIR.mkdir(parents=True)
     build_catalog()
 
 
