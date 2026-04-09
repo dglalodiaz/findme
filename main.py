@@ -17,8 +17,8 @@ from deepface import DeepFace
 # ─── Config ────────────────────────────────────────────────────────────────
 CATALOG_DIR     = Path("catalog")
 CACHE_FILE      = Path("cache/descriptors.pkl")
-MODEL_NAME      = "ArcFace"       # Opciones: ArcFace, Facenet, VGG-Face
-DETECTOR        = "retinaface"    # Opciones: retinaface, mtcnn, opencv
+MODEL_NAME      = "Facenet"       # Opciones: ArcFace, Facenet, VGG-Face
+DETECTOR        = "opencv"    # Opciones: retinaface, mtcnn, opencv
 DISTANCE_METRIC = "cosine"
 MATCH_THRESHOLD = 0.40            # Menor = más estricto
 
